@@ -42,11 +42,17 @@ int count_vectors_in_file(char * filename, int * vector_count) {
     }
 
     fclose(file);
-    
+    *vector_count = full_pass_count;
     // If the last pass reached the end of the file and retrieved no integers
     // (rather than a stray one or two) and didn't throw an error, return EXIT_SUCCESS
     // Else, return EXIT_FAILURE
-    return EXIT_SUCCESS;
+    if (last_past_count == 0) {
+        return EXIT_SUCCESS;
+        
+    }
+    else {
+        return EXIT_FAILURE;
+    }
 }
 
 /* The second function you write allocates space for the vectors
