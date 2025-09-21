@@ -11,15 +11,38 @@ OR if the file cannot be interpreted as a binary file of vectors
 EXIT_FAILURE.  Else, it returns EXIT_SUCCESS.  */
 int count_vectors_in_file(char * filename, int * vector_count) {
     // Open the file in "rb" (read binary) mode
-
+    FILE *file = fopen(filename, "rb");
+    if (file == NULL) {
+        perror("Error opening file");
+        return -1; // Indicate an error occurred
+    }
     // Set up a buffer of three integers to read to,
     // a count of how many integers are read in on the last pass,
     // and a count of how many times three integers have been read in
-
+    int buffer[3];
+    int last_pass_count = 0;
+    int full_pass_count = 0;
+    int nRead = 0;
     // While not encountering the end of the file or receiving an error,
     // call f_read with the buffer to retrieve three integers.  Update
     // the counts.
+    while ((nRead = fread(buffer, sizeof(int), 3, file)) > 0) {
+        if (nRead == 3) {
+            full_pass_count++;
+        }
+        else {
+            last_pass_count = nRead;
+            break;
+        }
+    }
+    if (ferror(file)){
+        perror("Error reading file");
+        fclose(file);
+        return -1;
+    }
 
+    fclose(file);
+    
     // If the last pass reached the end of the file and retrieved no integers
     // (rather than a stray one or two) and didn't throw an error, return EXIT_SUCCESS
     // Else, return EXIT_FAILURE
