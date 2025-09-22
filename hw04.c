@@ -46,9 +46,8 @@ int count_vectors_in_file(char * filename, int * vector_count) {
     // If the last pass reached the end of the file and retrieved no integers
     // (rather than a stray one or two) and didn't throw an error, return EXIT_SUCCESS
     // Else, return EXIT_FAILURE
-    if (last_past_count == 0) {
-        return EXIT_SUCCESS;
-        
+    if (last_pass_count == 0) {
+        return EXIT_SUCCESS; 
     }
     else {
         return EXIT_FAILURE;
@@ -67,13 +66,33 @@ In the event of a file read failure or memory allocation failure (both
 are unlikely), you can return NULL.*/
 struct vector * read_vectors_from_file(char * filename, int vector_count) {
     // Open the file in "rb" (read binary) mode
-
+    FILE *file = fopen(filename, "rb");
+    if (file == NULL) {
+        perror("Error opening file");
+        return NULL;
+    }
     // Allocate sufficient space for all of the vector structs
-
+    struct vector *vector_list = malloc(vector_count * sizeof(struct vector));
+    if (vector_list == NULL) {
+        perror("Error allocating memory");
+        fclose(file);
+        return NULL;
+    }
     // Read in all the integers from the file.  Place each
     // set into the x-, y-, and z-coordinates of a vector in the list
+    size_t nRead = fread(vector_list, sizeof(struct vector), vector_count, file);
 
     // Return the list of vectors
+    if (nRead == vector_count) {
+        fclose(file);
+        return vector_list;
+    }
+    else {
+        perror("Error reading file");
+        free(vector_list);
+        fclose(file);
+        return NULL;
+    }
     return NULL;
 }
 
@@ -90,6 +109,17 @@ This function is meant to be sent to qsort - see
 https://en.cppreference.com/w/c/algorithm/qsort for an example
 of using qsort and a warning about comparison functions.*/
 int compare_vectors(const void* a, const void* b) {
+    const struct vector *vecA = (const struct vector *)a;
+    const struct vector *vecB = (const struct vector *)b;
+    if (vecA->x != vecB->x) {
+        return vecA->x - vecB->x;
+    }
+    if (vecA->y != vecB->y) {
+        return vecA->y - vecB->y;
+    }
+    if (vecA->z != vecB->z) {
+        return vecA->z - vecB->z;
+    }
     return 0;
 }
 
@@ -104,8 +134,18 @@ has length 'vector_count') to a binary file at 'filename'.  If the
 file cannot be opened, it returns EXIT_FAILURE. */
 int write_vectors_to_file(char * filename, struct vector * vector_list, int vector_count) {
     // Open the file in "wb" (write binary) mode
-
+    FILE *file = fopen(filename, "wb");
+    if (file == NULL) {
+        perror("Error opening file");
+        return EXIT_FAILURE;
+    }
     // Write the coordinates of each vector to the binary file
-    
+    fwrite(vector_list, sizeof(struct vector), vector_count, file);
+    if (ferror(file)){
+        perror("Error writing to file");
+        fclose(file);
+        return EXIT_FAILURE;
+    }
+    fclose(file);
     return EXIT_SUCCESS;
 }
