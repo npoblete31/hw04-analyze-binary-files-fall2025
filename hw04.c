@@ -89,7 +89,6 @@ struct vector * read_vectors_from_file(char * filename, int vector_count) {
     }
     else {
         perror("Error reading file");
-        free(vector_list);
         fclose(file);
         return NULL;
     }
@@ -147,5 +146,6 @@ int write_vectors_to_file(char * filename, struct vector * vector_list, int vect
         return EXIT_FAILURE;
     }
     fclose(file);
+    free(vector_list);
     return EXIT_SUCCESS;
 }
